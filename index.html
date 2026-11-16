@@ -24,16 +24,36 @@ canvas{display:block;width:100%;height:auto;image-rendering:pixelated;touch-acti
 .panel h1{font:clamp(32px,6vw,54px)/1.2 Jua;margin:10px 0 14px}
 .panel p{font-size:19px;line-height:1.9;color:#dce5df}
 .bigbtn{background:#f3c76e;color:#263946;border:2px solid #8e6b42;padding:12px 24px;font:20px Jua;box-shadow:0 4px #936d3d;margin-top:12px}
-#controls{display:none;justify-content:space-between;align-items:center;padding:12px 4px 2px;gap:12px}
-.pad{display:flex;gap:8px}.control{width:58px;height:52px;background:#294554;color:#fff2d9;border:2px solid #809b9a;border-radius:8px;font-size:22px;touch-action:none}
-#controls .interact{width:auto;padding:0 17px;background:#a36e4c;font:17px Jua}
+#controls{display:none;justify-content:space-between;align-items:center;padding:12px 4px 2px;gap:12px;touch-action:none;user-select:none;-webkit-user-select:none}
+.pad{display:flex;gap:10px}.control{width:68px;height:60px;background:#294554;color:#fff2d9;border:2px solid #809b9a;border-radius:8px;font-size:26px;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none; -webkit-tap-highlight-color:transparent;}
+#controls .interact{width:auto;min-width:142px;padding:0 20px;background:#a36e4c;font:20px Jua}
 #help{color:#b9c9c5;text-align:center;font-size:16px;margin:10px 0 2px;line-height:1.8}
 #endletter{display:none;position:fixed;inset:0;background:#101d28ed;z-index:10;overflow:auto;padding:24px}
 .letter{max-width:780px;margin:3vh auto;background:#fff5e2;color:#293b43;padding:clamp(24px,5vw,48px);border:5px solid #b58a5c;box-shadow:8px 8px #0b141b;font-size:21px;line-height:2.05;white-space:pre-line}
 .letter h2{font:36px Jua;color:#86583d}
 .letter button{display:block;margin:24px auto 0;background:#e9bf70;border:2px solid #916b40;padding:12px 22px;font-size:18px}
-@media(max-width:650px){#wrap{padding:8px}#controls{display:flex}#help .desktop{display:none}#dialog{left:2%;right:2%;bottom:2%;max-height:76%;padding:16px 16px}#dialog h2{font-size:25px}#dialog p{font-size:18px;line-height:1.85}#dialog .hint{font-size:14px}#dialog button{font-size:17px}.pill{font-size:13px}.panel p{font-size:17px}.letter{font-size:19px;line-height:1.95;padding:22px}.letter h2{font-size:30px}#help{font-size:14px}}
-</style></head>
+@media(max-width:760px), (pointer:coarse){
+ #wrap{padding:8px}
+ #controls{display:flex}
+ #help .desktop{display:none}
+ #dialog{left:2%;right:2%;bottom:2%;max-height:76%;padding:16px 16px}
+ #dialog h2{font-size:25px}
+ #dialog p{font-size:18px;line-height:1.85}
+ #dialog .hint{font-size:14px}
+ #dialog button{font-size:17px}
+ .pill{font-size:13px}
+ .panel p{font-size:17px}
+ .letter{font-size:19px;line-height:1.95;padding:22px}
+ .letter h2{font-size:30px}
+ #help{font-size:14px}
+}
+@media(max-width:380px){
+ #controls{gap:6px}
+ .pad{gap:6px}
+ .control{width:58px;height:56px}
+ #controls .interact{min-width:124px;padding:0 12px;font-size:18px}
+}
+button{ -webkit-tap-highlight-color:transparent; }\n</style></head>
 <body>
 <div id="wrap">
 <header><span>✦ DAD'S MEMORY QUEST ✦</span><span>1996 — 2026</span></header>
@@ -41,10 +61,10 @@ canvas{display:block;width:100%;height:auto;image-rendering:pixelated;touch-acti
 <canvas id="c" width="900" height="510" aria-label="아빠가 추억의 장소를 걸어 다니는 게임"></canvas>
 <div id="hud"><span class="pill" id="sceneLabel">기억의 길</span><span class="pill" id="count">추억 0 / 6</span></div>
 <div id="dialog"><h2 id="dtitle"></h2><p id="dtext"></p><span class="hint">추억을 천천히 읽어 보세요.</span><button onclick="closeDialog()">계속 걷기</button></div>
-<div id="overlay"><div class="panel"><div style="font-size:42px">🌙 🏡 ✨</div><h1>아빠의 30년,<br>우리 가족의 이야기</h1><p>아빠 캐릭터가 되어 추억이 담긴 장소들을 직접 걸어가 보세요.<br>반짝이는 기억 앞에 다가가시면, 우리 가족의 이야기가 하나씩 펼쳐집니다.</p><p><b>조작법</b><br>PC: ← → 방향키 또는 A / D 로 이동, 스페이스바로 추억 열기<br>모바일: 화면 아래 화살표와 추억 버튼</p><button class="bigbtn" onclick="startGame()">기억 속으로 들어가기 ▶</button></div></div>
+<div id="overlay"><div class="panel"><div style="font-size:42px">🌙 🏡 ✨</div><h1>아빠의 30년,<br>우리 가족의 이야기</h1><p>아빠 캐릭터가 되어 추억이 담긴 장소들을 직접 걸어가 보세요.<br>반짝이는 기억 앞에 다가가시면, 우리 가족의 이야기가 하나씩 펼쳐집니다.</p><p><b>조작법</b><br>PC: ← → 방향키 또는 A / D 로 이동, 스페이스바로 추억 열기<br>모바일: 화면 아래 ◀ ▶ 버튼을 누르고 이동, [추억 열기] 버튼을 터치</p><button class="bigbtn" onclick="startGame()">기억 속으로 들어가기 ▶</button></div></div>
 </div>
-<div id="controls"><div class="pad"><button class="control" id="left">◀</button><button class="control" id="right">▶</button></div><button class="control interact" id="interact">추억 열기 ✦</button></div>
-<div id="help"><span class="desktop">방향키 / A·D : 걷기　　스페이스바 : 가까운 추억 살펴보기</span><span class="mobile">화살표로 이동하고, 추억 앞에서 [추억 열기]를 눌러 주세요.</span><br>반짝이는 물건 가까이 다가가시면 추억을 확인하실 수 있어요.</div>
+<div id="controls"><div class="pad"><button type="button" class="control" id="left" aria-label="왼쪽으로 이동">◀</button><button type="button" class="control" id="right" aria-label="오른쪽으로 이동">▶</button></div><button type="button" class="control interact" id="interact">추억 열기 ✦</button></div>
+<div id="help"><span class="desktop">방향키 / A·D : 걷기　　스페이스바 : 가까운 추억 살펴보기</span><span class="mobile">◀ ▶ 버튼을 누르고 이동한 뒤, 추억 앞에서 [추억 열기]를 터치해 주세요.</span><br>반짝이는 물건 가까이 다가가시면 추억을 확인하실 수 있어요.</div>
 </div>
 <div id="endletter"><div class="letter"><div style="color:#a16d45;font:14px Jua;letter-spacing:3px">A LETTER FOR DAD</div><h2>사랑하는 아빠에게</h2><div id="letterText"></div><button onclick="document.getElementById('endletter').style.display='none'">게임으로 돌아가기</button></div></div>
 <script>
@@ -146,8 +166,36 @@ function update(){
 }
 window.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();keys[e.key]=true;if(e.key===' '||e.key==='Enter')openMemory()});
 window.addEventListener('keyup',e=>keys[e.key]=false);
-function bindHold(id,key){let el=document.getElementById(id);el.addEventListener('pointerdown',e=>{e.preventDefault();keys[key]=true;el.setPointerCapture(e.pointerId)});['pointerup','pointercancel','lostpointercapture'].forEach(ev=>el.addEventListener(ev,()=>keys[key]=false))}
-bindHold('left','ArrowLeft');bindHold('right','ArrowRight');document.getElementById('interact').addEventListener('click',openMemory);
+// 모바일 터치/마우스 겸용 이동 버튼
+function bindHold(id,key){
+ const el=document.getElementById(id);
+ const press=e=>{
+   e.preventDefault();
+   if(!started || dialogOpen) return;
+   keys[key]=true;
+   el.classList.add('pressed');
+ };
+ const release=e=>{
+   if(e) e.preventDefault();
+   keys[key]=false;
+   el.classList.remove('pressed');
+ };
+ // Pointer Events: iOS Safari, Android Chrome 및 마우스 지원
+ el.addEventListener('pointerdown',press,{passive:false});
+ window.addEventListener('pointerup',release,{passive:false});
+ window.addEventListener('pointercancel',release,{passive:false});
+ el.addEventListener('lostpointercapture',release);
+ // 화면 회전/앱 전환으로 손가락을 뗀 이벤트를 놓친 경우 이동 상태 초기화
+ window.addEventListener('blur',release);
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)release()});
+}
+bindHold('left','ArrowLeft');
+bindHold('right','ArrowRight');
+
+// 터치 버튼은 스페이스바와 같은 openMemory 동작을 수행합니다.
+const interactButton=document.getElementById('interact');
+interactButton.addEventListener('click',e=>{e.preventDefault();openMemory()});
+interactButton.addEventListener('contextmenu',e=>e.preventDefault());
 document.getElementById('letterText').textContent=`아빠,
 
 아빠가 일하신 지 30년이 되는 날을 진심으로 축하드려요.
