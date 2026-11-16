@@ -11,7 +11,7 @@ button{font:inherit;cursor:pointer}
 #wrap{max-width:1000px;margin:auto;padding:14px}
 header{display:flex;justify-content:space-between;align-items:center;margin:2px 3px 10px;color:#d7e1dc;font-size:13px}
 #gamebox{position:relative;border:4px solid #71858a;border-radius:7px;background:#243b49;box-shadow:0 0 0 4px #0c1720,0 15px 45px #0008;overflow:hidden}
-canvas{display:block;width:100%;height:auto;image-rendering:pixelated;touch-action:none}
+canvas{display:block;width:100%;height:auto;image-rendering:pixelated;touch-action:pan-y}
 #hud{position:absolute;left:12px;right:12px;top:10px;display:flex;justify-content:space-between;gap:8px;pointer-events:none}
 .pill{background:#132632dd;border:1px solid #b7c9bd88;border-radius:20px;padding:7px 12px;font-size:16px;color:#fff4df}
 #dialog{position:absolute;left:4%;right:4%;bottom:4%;max-height:68%;overflow-y:auto;background:#fff5e2;color:#263b46;border:4px solid #a87950;box-shadow:5px 5px 0 #101d28;padding:22px 26px;display:none;z-index:3}
@@ -63,14 +63,14 @@ button{ -webkit-tap-highlight-color:transparent; }\n</style></head>
 <div id="dialog"><h2 id="dtitle"></h2><p id="dtext"></p><span class="hint">추억을 천천히 읽어 보세요.</span><button onclick="closeDialog()">계속 걷기</button></div>
 <div id="overlay"><div class="panel"><div style="font-size:42px">🌙 🏡 ✨</div><h1>아빠의 30년,<br>우리 가족의 이야기</h1><p>아빠 캐릭터가 되어 추억이 담긴 장소들을 직접 걸어가 보세요.<br>반짝이는 기억 앞에 다가가시면, 우리 가족의 이야기가 하나씩 펼쳐집니다.</p><p><b>조작법</b><br>PC: ← → 방향키 또는 A / D 로 이동, 스페이스바로 추억 열기<br>모바일: 화면 아래 ◀ ▶ 버튼을 누르고 이동, [추억 열기] 버튼을 터치</p><button class="bigbtn" onclick="startGame()">기억 속으로 들어가기 ▶</button></div></div>
 </div>
-<div id="controls"><div class="pad"><button type="button" class="control" id="left" aria-label="왼쪽으로 이동">◀</button><button type="button" class="control" id="right" aria-label="오른쪽으로 이동">▶</button></div><button type="button" class="control interact" id="interact">추억 열기 ✦</button></div>
-<div id="help"><span class="desktop">방향키 / A·D : 걷기　　스페이스바 : 가까운 추억 살펴보기</span><span class="mobile">◀ ▶ 버튼을 누르고 이동한 뒤, 추억 앞에서 [추억 열기]를 터치해 주세요.</span><br>반짝이는 물건 가까이 다가가시면 추억을 확인하실 수 있어요.</div>
+<div id="controls" style="display:none"></div>
+<div id="help"><span class="desktop">방향키 / A·D : 걷기　　스페이스바 : 가까운 추억 살펴보기</span><span class="mobile">반짝이는 추억 아이콘을 순서대로 터치하면 아빠 캐릭터가 자동으로 걸어갑니다.</span><br>반짝이는 추억 아이콘을 순서대로 터치해 주세요. 아빠 캐릭터가 해당 장소까지 걸어가 추억을 보여드립니다.</div>
 </div>
 <div id="endletter"><div class="letter"><div style="color:#a16d45;font:14px Jua;letter-spacing:3px">A LETTER FOR DAD</div><h2>사랑하는 아빠에게</h2><div id="letterText"></div><button onclick="document.getElementById('endletter').style.display='none'">게임으로 돌아가기</button></div></div>
 <script>
 const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
 const W=900,H=510,ground=405;
-let player={x:70,y:ground-58,dir:1,walk:0},keys={},started=false,dialogOpen=false,found=new Set(),near=null,scene=0;
+let player={x:70,y:ground-58,dir:1,walk:0},keys={},started=false,dialogOpen=false,found=new Set(),near=null,scene=0,autoTarget=null;
 const memories=[
  {x:155,icon:'🚪',name:'삼신아파트의 주말',title:'현관문이 열리던 주말',text:'삼신아파트에 살던 때의 일이에요.\n주말마다 아빠가 현관문을 열고 들어오시면,\n저는 반가운 마음에 폴짝 뛰어 아빠에게 안겼어요.\n그리고 까끌까끌한 아빠 수염에 뽀뽀했어요.\n\n아빠가 집에 돌아오는 소리만으로도 행복했던,\n작지만 오래도록 선명한 기억이에요.'},
  {x:285,icon:'🟪',name:'보라색 장판',title:'네 식구가 함께 잤던 밤',text:'제가 장평초등학교로 전학 가기 전날이었어요.\n가족 네 명이 원룸 바닥에 나란히 누웠어요.\n보라색 장판의 온기를 온몸으로 느끼며\n서로 가까이 붙어 잠들었던 밤이었어요.\n\n넓고 근사한 곳은 아니었지만,\n우리 네 식구가 함께여서 참 따뜻했어요.'},
@@ -134,7 +134,9 @@ function drawMemory(m,idx){
  ctx.fillStyle=found.has(idx)?'#a6c6a9':'#f5d17d';ctx.globalAlpha=.28;ctx.beginPath();ctx.arc(0,0,29,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
  rect(-17,-17,34,34,found.has(idx)?'#86b7a0':'#f0c56f');ctx.strokeStyle='#fff0c4';ctx.lineWidth=3;ctx.strokeRect(-17,-17,34,34);
  ctx.font='21px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(found.has(idx)?'✓':m.icon,0,1);
- ctx.fillStyle='#fff3d5';ctx.font='16px "Gowun Dodum"';ctx.fillText(m.name,0,34);ctx.restore();
+ ctx.fillStyle='#fff3d5';ctx.font='16px "Gowun Dodum"';ctx.fillText(m.name,0,34);
+ if(!found.has(idx)&&idx===found.size){ctx.fillStyle='#fff4df';ctx.font='bold 15px "Gowun Dodum"';ctx.fillText('터치!',0,-31)}
+ ctx.restore();
 }
 function render(){
  let s=scenes[scene];drawSky(s);drawHouse();
@@ -144,7 +146,7 @@ function render(){
  drawDad(player.x,player.y,player.dir,player.walk);
  // prompt near nearest collectible
  near=memories.map((m,i)=>({m,i,d:Math.abs(m.x-player.x)})).filter(o=>o.d<54&&!found.has(o.i)).sort((a,b)=>a.d-b.d)[0]||null;
- if(near&&!dialogOpen){ctx.fillStyle='#fff4df';ctx.font='bold 17px "Gowun Dodum"';ctx.textAlign='center';ctx.fillText('SPACE / 추억 열기',near.m.x,ground-132)}
+ if(near&&!dialogOpen){ctx.fillStyle='#fff4df';ctx.font='bold 17px "Gowun Dodum"';ctx.textAlign='center';ctx.fillText('터치하여 추억 만나기',near.m.x,ground-132)}
  document.getElementById('sceneLabel').textContent=s.label;
  document.getElementById('count').textContent=`추억 ${found.size} / 6`;
  requestAnimationFrame(render);
@@ -152,15 +154,56 @@ function render(){
 function startGame(){document.getElementById('overlay').style.display='none';started=true;player.x=70;render();}
 function openMemory(){
  if(!started||dialogOpen)return;
- if(near){dialogOpen=true;found.add(near.i);document.getElementById('dtitle').textContent=near.m.title;document.getElementById('dtext').textContent=near.m.text;document.getElementById('dialog').style.display='block';}
+ if(near){showMemory(near.i);}
  else if(found.size===6){showEnding()}
 }
+function showMemory(index){
+ if(dialogOpen||found.has(index))return;
+ dialogOpen=true;autoTarget=null;found.add(index);
+ document.getElementById('dtitle').textContent=memories[index].title;
+ document.getElementById('dtext').textContent=memories[index].text;
+ document.getElementById('dialog').style.display='block';
+}
+function tapMemory(event){
+ if(!started||dialogOpen)return;
+ event.preventDefault();
+ const r=canvas.getBoundingClientRect();
+ const scaleX=W/r.width, scaleY=H/r.height;
+ const x=(event.clientX-r.left)*scaleX;
+ const y=(event.clientY-r.top)*scaleY;
+ const nextIndex=found.size;
+ if(nextIndex>=memories.length){showEnding();return;}
+ const m=memories[nextIndex];
+ // Only the next memory in the story sequence can be selected.
+ const mx=m.x, my=ground-85;
+ if(Math.abs(x-mx)<=48 && Math.abs(y-my)<=58){
+   autoTarget=nextIndex;
+ }
+}
+canvas.addEventListener('pointerdown',tapMemory,{passive:false});
 function closeDialog(){dialogOpen=false;document.getElementById('dialog').style.display='none';if(found.size===6){setTimeout(showEnding,400)}}
 function showEnding(){document.getElementById('endletter').style.display='block'}
 function update(){
  if(started&&!dialogOpen){
-  let dx=0;if(keys.ArrowLeft||keys.a||keys.A)dx=-1;if(keys.ArrowRight||keys.d||keys.D)dx=1;
-  if(dx){player.x=Math.max(25,Math.min(875,player.x+dx*2.8));player.dir=dx;player.walk+=.22}
+  if(autoTarget!==null){
+   const targetX=memories[autoTarget].x;
+   const diff=targetX-player.x;
+   if(Math.abs(diff)<=26){
+    player.x=targetX-26;
+    player.walk=0;
+    const arrived=autoTarget;
+    autoTarget=null;
+    showMemory(arrived);
+   }else{
+    const dx=diff>0?1:-1;
+    player.dir=dx;
+    player.x+=dx*3.2;
+    player.walk+=.24;
+   }
+  }else{
+   let dx=0;if(keys.ArrowLeft||keys.a||keys.A)dx=-1;if(keys.ArrowRight||keys.d||keys.D)dx=1;
+   if(dx){player.x=Math.max(25,Math.min(875,player.x+dx*2.8));player.dir=dx;player.walk+=.22}
+  }
  }
  requestAnimationFrame(update);
 }
