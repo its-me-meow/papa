@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>아빠의 30년 - 기억을 걷는 게임</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap');
+:root{--ink:#243744;--night:#172936;--cream:#fff4df;--gold:#f5ca75;--muted:#c7d6d1}
+*{box-sizing:border-box}body{margin:0;background:#101d28;color:var(--cream);font-family:'Gowun Dodum',sans-serif}
+button{font:inherit;cursor:pointer}
+#wrap{max-width:1000px;margin:auto;padding:14px}
+header{display:flex;justify-content:space-between;align-items:center;margin:2px 3px 10px;color:#d7e1dc;font-size:13px}
+#gamebox{position:relative;border:4px solid #71858a;border-radius:7px;background:#243b49;box-shadow:0 0 0 4px #0c1720,0 15px 45px #0008;overflow:hidden}
+canvas{display:block;width:100%;height:auto;image-rendering:pixelated;touch-action:none}
+#hud{position:absolute;left:12px;right:12px;top:10px;display:flex;justify-content:space-between;gap:8px;pointer-events:none}
+.pill{background:#132632dd;border:1px solid #b7c9bd88;border-radius:20px;padding:6px 11px;font-size:12px;color:#fff4df}
+#dialog{position:absolute;left:5%;right:5%;bottom:5%;background:#fff5e2;color:#263b46;border:4px solid #a87950;box-shadow:5px 5px 0 #101d28;padding:17px 20px;display:none;z-index:3}
+#dialog h2{font:24px Jua;margin:0 0 8px;color:#8c5c3d}
+#dialog p{line-height:1.7;margin:0 0 10px;white-space:pre-line}
+#dialog .hint{font-size:12px;color:#64757a}
+#dialog button{float:right;background:#e7bd6e;border:2px solid #8b6843;padding:7px 15px;color:#283943}
+#overlay{position:absolute;inset:0;z-index:5;background:#142936ed;display:flex;align-items:center;justify-content:center;padding:20px;text-align:center}
+.panel{max-width:620px}
+.panel h1{font:clamp(32px,6vw,54px)/1.2 Jua;margin:10px 0 14px}
+.panel p{line-height:1.85;color:#dce5df}
+.bigbtn{background:#f3c76e;color:#263946;border:2px solid #8e6b42;padding:12px 24px;font:20px Jua;box-shadow:0 4px #936d3d;margin-top:12px}
+#controls{display:none;justify-content:space-between;align-items:center;padding:12px 4px 2px;gap:12px}
+.pad{display:flex;gap:8px}.control{width:58px;height:52px;background:#294554;color:#fff2d9;border:2px solid #809b9a;border-radius:8px;font-size:22px;touch-action:none}
+#controls .interact{width:auto;padding:0 17px;background:#a36e4c;font:17px Jua}
+#help{color:#b9c9c5;text-align:center;font-size:12px;margin:8px 0 2px;line-height:1.7}
+#endletter{display:none;position:fixed;inset:0;background:#101d28ed;z-index:10;overflow:auto;padding:24px}
+.letter{max-width:700px;margin:4vh auto;background:#fff5e2;color:#293b43;padding:clamp(22px,5vw,45px);border:5px solid #b58a5c;box-shadow:8px 8px #0b141b;line-height:1.9;white-space:pre-line}
+.letter h2{font:30px Jua;color:#86583d}
+.letter button{display:block;margin:20px auto 0;background:#e9bf70;border:2px solid #916b40;padding:10px 20px}
+@media(max-width:650px){#wrap{padding:8px}#controls{display:flex}#help .desktop{display:none}#dialog{bottom:3%;padding:12px 14px}#dialog h2{font-size:20px}#dialog p{font-size:14px}}
+</style></head>
+<body>
+<div id="wrap">
+<header><span>✦ DAD'S MEMORY QUEST ✦</span><span>1996 — 2026</span></header>
+<div id="gamebox">
+<canvas id="c" width="900" height="510" aria-label="아빠가 추억의 장소를 걸어 다니는 게임"></canvas>
+<div id="hud"><span class="pill" id="sceneLabel">기억의 길</span><span class="pill" id="count">추억 0 / 6</span></div>
+<div id="dialog"><h2 id="dtitle"></h2><p id="dtext"></p><span class="hint">추억을 천천히 읽어보세요.</span><button onclick="closeDialog()">계속 걷기</button></div>
+<div id="overlay"><div class="panel"><div style="font-size:42px">🌙 🏡 ✨</div><h1>아빠의 30년,<br>우리 가족의 이야기</h1><p>아빠 캐릭터가 되어 추억이 담긴 장소들을 직접 걸어가 보세요.<br>반짝이는 기억 앞에 다가가면, 우리 가족의 이야기가 하나씩 펼쳐집니다.</p><p><b>조작법</b><br>PC: ← → 방향키 또는 A / D 로 이동, 스페이스바로 추억 열기<br>모바일: 화면 아래 화살표와 추억 버튼</p><button class="bigbtn" onclick="startGame()">기억 속으로 들어가기 ▶</button></div></div>
+</div>
+<div id="controls"><div class="pad"><button class="control" id="left">◀</button><button class="control" id="right">▶</button></div><button class="control interact" id="interact">추억 열기 ✦</button></div>
+<div id="help"><span class="desktop">방향키 / A·D : 걷기　　스페이스바 : 가까운 추억 살펴보기</span><span class="mobile">화살표로 이동하고, 추억 앞에서 [추억 열기]를 누르세요.</span><br>반짝이는 물건 가까이 다가가면 상호작용할 수 있어요.</div>
+</div>
+<div id="endletter"><div class="letter"><div style="color:#a16d45;font:14px Jua;letter-spacing:3px">A LETTER FOR DAD</div><h2>사랑하는 아빠에게</h2><div id="letterText"></div><button onclick="document.getElementById('endletter').style.display='none'">게임으로 돌아가기</button></div></div>
+<script>
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const W=900,H=510,ground=405;
+let player={x:70,y:ground-58,dir:1,walk:0},keys={},started=false,dialogOpen=false,found=new Set(),near=null,scene=0;
+const memories=[
+ {x:155,icon:'🚪',name:'삼신아파트의 주말',title:'현관문이 열리던 주말',text:'삼신아파트에 살던 때.\n주말마다 아빠가 현관문을 열고 들어오시면,\n나는 반가운 마음에 폴짝 뛰어 아빠에게 안겼지.\n그리고 까끌까끌한 아빠 수염에 뽀뽀했어.\n\n아빠가 집에 돌아오는 소리만으로도 행복했던,\n작지만 오래도록 선명한 기억이야.'},
+ {x:285,icon:'🟪',name:'보라색 장판',title:'네 식구가 함께 잤던 밤',text:'내가 장평초등학교로 전학 가기 전날.\n가족 네 명이 원룸 바닥에 나란히 누웠지.\n보라색 장판의 온기를 온몸으로 느끼며\n서로 가까이 붙어 잠들었던 밤.\n\n넓고 근사한 곳은 아니었지만,\n우리 네 식구가 함께여서 참 따뜻했어.'},
+ {x:415,icon:'☕',name:'바닷가 가족 모임',title:'머그컵이 여덟 개나!',text:'아빠 회사에서 바닷가 근처 가족 모임이 열렸던 날.\n다 같이 고기도 구워 먹고 즐거운 시간을 보냈지.\n머그컵에 그림을 그리는 행사에서는\n우리 자매가 누구보다 열심히 만들었어.\n\n결국 우리 집에 머그컵이 거의 8개나 배송됐지!\n그날의 웃음소리가 아직도 기억나.'},
+ {x:545,icon:'🍕',name:'대한아파트의 피자',title:'먹고 싶다는 말 한마디에',text:'대한아파트에 살던 때,\n내가 피자가 먹고 싶다고 말하자\n아빠는 망설임 없이 피망을 썰기 시작했어.\n뚝딱뚝딱 맛있는 피자를 만들어 주셨지.\n\n먹고 싶다는 말 한마디를 그냥 지나치지 않고\n직접 만들어 주던 아빠의 마음이 참 고마워.'},
+ {x:675,icon:'🍢',name:'늦은 밤의 떡볶이',title:'고3의 밤을 채워준 떡볶이',text:'고3 때, 밤늦게 공부를 마치고 집에 돌아온 날.\n배가 고프다고 하자 아빠는 바로 떡볶이를 만들어 주셨어.\n늦은 시간인데도 기꺼이 주방으로 가던 모습.\n\n그날 먹었던 떡볶이는 정말 맛있었어.\n음식만큼이나 아빠의 마음이 따뜻했던 밤이야.'},
+ {x:805,icon:'💗',name:'아빠의 다정한 마음',title:'먼저 다가와 달래주던 아빠',text:'아빠에게 혼이 난 뒤,\n나는 방에 틀어박혀 삐져 있곤 했지.\n그럴 때 아빠는 그냥 두지 않고\n내 마음을 풀어주려고 다정하게 다가와 주셨어.\n\n혼내는 마음 뒤에도 나를 사랑하고 걱정하는 마음이\n있다는 걸 이제는 조금 더 잘 알 것 같아.\n고마워, 아빠.'}
+];
+const scenes=[{sky:'#263e53',far:'#3c5960',near:'#2c4748',ground:'#675c50',accent:'#e6b86b',label:'삼신아파트와 오래된 기억'},
+{sky:'#34485a',far:'#566b70',near:'#334e50',ground:'#79634e',accent:'#d6a5bd',label:'함께여서 따뜻했던 시간'},
+{sky:'#26485b',far:'#39717a',near:'#28545a',ground:'#59614d',accent:'#f0c878',label:'바닷가 가족 모임'},
+{sky:'#34465a',far:'#59666a',near:'#394e4c',ground:'#715d4d',accent:'#efb86b',label:'대한아파트의 저녁'},
+{sky:'#25394c',far:'#4b5a66',near:'#30464b',ground:'#65584c',accent:'#e6b96f',label:'늦은 밤의 주방'},
+{sky:'#293a50',far:'#4d5b6a',near:'#35484d',ground:'#6b5c50',accent:'#f4ca79',label:'마음이 풀리던 방'}];
+function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
+function drawSky(s){
+ rect(0,0,W,H,s.sky);
+ // stars / sunset glows
+ for(let i=0;i<34;i++){let x=(i*137+41)%W,y=(i*53+29)%235;rect(x,y,3,3,'#f8e6b6aa')}
+ rect(700,70,54,54,'#f2d49a');rect(712,58,34,12,s.sky);
+ // distant hills
+ ctx.fillStyle=s.far;ctx.beginPath();ctx.moveTo(0,300);ctx.lineTo(120,220);ctx.lineTo(230,292);ctx.lineTo(390,205);ctx.lineTo(550,292);ctx.lineTo(730,215);ctx.lineTo(900,290);ctx.lineTo(900,ground);ctx.lineTo(0,ground);ctx.fill();
+ ctx.fillStyle=s.near;ctx.beginPath();ctx.moveTo(0,345);ctx.lineTo(160,285);ctx.lineTo(310,345);ctx.lineTo(490,280);ctx.lineTo(660,345);ctx.lineTo(820,290);ctx.lineTo(900,330);ctx.lineTo(900,ground);ctx.lineTo(0,ground);ctx.fill();
+ rect(0,ground,W,H-ground,s.ground);
+ for(let i=0;i<42;i++)rect((i*71)%W,ground+((i*29)%95),12,3,'#ffffff12');
+}
+function drawHouse(){
+ // stylized pixel buildings behind the walking path
+ if(scene===0||scene===1||scene===3||scene===5){
+   rect(40,235,145,170,'#b77f65');ctx.fillStyle='#75514d';ctx.beginPath();ctx.moveTo(25,240);ctx.lineTo(112,175);ctx.lineTo(200,240);ctx.fill();
+   for(let y=260;y<360;y+=48)for(let x=60;x<165;x+=55){rect(x,y,25,25,'#f1d18b');rect(x+10,y,3,25,'#8e7059')}
+   rect(95,330,34,75,'#4b4140');
+ } else if(scene===2){rect(0,275,900,7,'#d4e4dc');for(let x=40;x<900;x+=100)rect(x,260+(x%3)*4,5,22,'#d4e4dc')}
+ else {rect(670,250,150,155,'#9e6d53');rect(650,230,190,25,'#5a4543');rect(710,300,42,105,'#f1cb7c')}
+}
+const dadSprite=new Image();
+dadSprite.src='dad_pixel_sprite.png';
+function drawDad(x,y,dir,walk){
+ // 사용자가 제공한 캐릭터 레퍼런스를 반영한 픽셀 스프라이트
+ // 머리카락과 눈동자는 검은색, 안경은 없음.
+ const bob=Math.sin(walk)*2.2;
+ const sw=72, sh=101;
+ ctx.save();
+ ctx.translate(Math.round(x),Math.round(ground-sh+bob));
+ if(dir<0){ctx.translate(sw,0);ctx.scale(-1,1)}
+ if(dadSprite.complete && dadSprite.naturalWidth){
+   ctx.imageSmoothingEnabled=false;
+   ctx.drawImage(dadSprite,0,0,sw,sh);
+ } else {
+   // 이미지가 로드되기 전에도 캐릭터 위치가 보이도록 하는 간단한 대체 도형
+   rect(23,0,27,25,'#080808');rect(19,22,37,31,'#f0c58d');
+   rect(12,50,50,32,'#51a9c5');rect(16,81,20,14,'#45bf4c');rect(40,81,20,14,'#45bf4c');
+   rect(12,94,22,7,'#9b704c');rect(42,94,22,7,'#9b704c');
+   rect(28,32,5,8,'#080808');rect(45,32,5,8,'#080808');
+ }
+ ctx.restore();
+}
+function drawMemory(m,idx){
+ const pulse=1+Math.sin(Date.now()/250+idx)*.12;
+ ctx.save();ctx.translate(m.x,ground-85);ctx.scale(pulse,pulse);
+ ctx.fillStyle=found.has(idx)?'#a6c6a9':'#f5d17d';ctx.globalAlpha=.28;ctx.beginPath();ctx.arc(0,0,29,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
+ rect(-17,-17,34,34,found.has(idx)?'#86b7a0':'#f0c56f');ctx.strokeStyle='#fff0c4';ctx.lineWidth=3;ctx.strokeRect(-17,-17,34,34);
+ ctx.font='21px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(found.has(idx)?'✓':m.icon,0,1);
+ ctx.fillStyle='#fff3d5';ctx.font='13px "Gowun Dodum"';ctx.fillText(m.name,0,34);ctx.restore();
+}
+function render(){
+ let s=scenes[scene];drawSky(s);drawHouse();
+ // path and tiny grass tufts
+ rect(0,ground+16,W,4,'#3e4039');for(let i=0;i<35;i++){let x=(i*83+20)%W;rect(x,ground-4,3,7,'#9aa06c')}
+ memories.forEach((m,i)=>drawMemory(m,i));
+ drawDad(player.x,player.y,player.dir,player.walk);
+ // prompt near nearest collectible
+ near=memories.map((m,i)=>({m,i,d:Math.abs(m.x-player.x)})).filter(o=>o.d<54&&!found.has(o.i)).sort((a,b)=>a.d-b.d)[0]||null;
+ if(near&&!dialogOpen){ctx.fillStyle='#fff4df';ctx.font='bold 14px "Gowun Dodum"';ctx.textAlign='center';ctx.fillText('SPACE / 추억 열기',near.m.x,ground-132)}
+ document.getElementById('sceneLabel').textContent=s.label;
+ document.getElementById('count').textContent=`추억 ${found.size} / 6`;
+ requestAnimationFrame(render);
+}
+function startGame(){document.getElementById('overlay').style.display='none';started=true;player.x=70;render();}
+function openMemory(){
+ if(!started||dialogOpen)return;
+ if(near){dialogOpen=true;found.add(near.i);document.getElementById('dtitle').textContent=near.m.title;document.getElementById('dtext').textContent=near.m.text;document.getElementById('dialog').style.display='block';}
+ else if(found.size===6){showEnding()}
+}
+function closeDialog(){dialogOpen=false;document.getElementById('dialog').style.display='none';if(found.size===6){setTimeout(showEnding,400)}}
+function showEnding(){document.getElementById('endletter').style.display='block'}
+function update(){
+ if(started&&!dialogOpen){
+  let dx=0;if(keys.ArrowLeft||keys.a||keys.A)dx=-1;if(keys.ArrowRight||keys.d||keys.D)dx=1;
+  if(dx){player.x=Math.max(25,Math.min(875,player.x+dx*2.8));player.dir=dx;player.walk+=.22}
+ }
+ requestAnimationFrame(update);
+}
+window.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();keys[e.key]=true;if(e.key===' '||e.key==='Enter')openMemory()});
+window.addEventListener('keyup',e=>keys[e.key]=false);
+function bindHold(id,key){let el=document.getElementById(id);el.addEventListener('pointerdown',e=>{e.preventDefault();keys[key]=true;el.setPointerCapture(e.pointerId)});['pointerup','pointercancel','lostpointercapture'].forEach(ev=>el.addEventListener(ev,()=>keys[key]=false))}
+bindHold('left','ArrowLeft');bindHold('right','ArrowRight');document.getElementById('interact').addEventListener('click',openMemory);
+document.getElementById('letterText').textContent=`아빠,
+
+아빠가 일하신 지 30년이 되는 날을 진심으로 축하해.
+
+프리랜서라는 일이 정해진 출퇴근이나 근속 연수로 설명되는 일은 아니지만,
+30년이라는 시간 동안 자신의 일을 이어오고 책임져 왔다는 건
+정말 대단하고 존경스러운 일이야.
+
+그 시간 동안 얼마나 많은 고민과 선택이 있었을까.
+잘 풀리는 날도, 유난히 힘든 날도 있었을 텐데
+아빠는 우리 가족을 위해 묵묵히 하루하루를 쌓아왔겠지.
+
+우리가 당연하게 누려온 일상 속에는
+아빠가 보낸 수많은 시간과 노력이 담겨 있다는 걸 이제는 알아.
+말로 다 표현하지 못했지만 늘 고맙고, 정말 존경해.
+
+이제는 아빠가 걸어온 시간만큼
+앞으로 아빠가 누릴 행복한 시간도 많았으면 좋겠어.
+아빠가 하고 싶은 일, 가보고 싶은 곳, 쉬고 싶은 순간들을
+우리와 함께 마음껏 누렸으면 좋겠어.
+
+지난 30년 정말 수고 많았어.
+우리 가족의 아빠여서 고마워.
+
+사랑해, 아빠.`;
+update();render();
+</script></body></html>
